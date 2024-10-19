@@ -9,3 +9,4 @@ scipy
 datetime
 seaborn
 statsmodels
+openpyxl

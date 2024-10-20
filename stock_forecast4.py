@@ -118,7 +118,7 @@ data = pd.merge(stock_data, economic_data, on='date')
 data_cleaned = data.dropna(subset=['GDP', 'durables'])
 data_cleaned.set_index('date', inplace=True)
 
-st.write(f'{stock_symbol} Stock data with economic indicators')
+st.subheader(f'{stock_symbol} Stock data with economic indicators')
 st.write(data_cleaned)
 
 # Sort by 'date' in ascending order and reset the index
@@ -132,7 +132,16 @@ data_sorted.set_index('date', inplace=True)
 st.subheader(f'{stock_symbol} Stock Price')
 fig = go.Figure()
 fig.add_trace(go.Scatter(x=data_cleaned.index, y=data_sorted['Adjusted_close'], mode='lines', name='Stock Price'))
-fig.layout.update(title_text='Time Series Data', xaxis_rangeslider_visible=True)
+# Update layout with title, labels, and legend
+fig.update_layout(
+    title=f'{stock_symbol} Stock Price Over Time',
+    xaxis_title='Date',
+    yaxis_title='Stock Price',
+    legend_title='Legend',
+    xaxis_rangeslider_visible=True
+)
+
+# Display the plot
 st.plotly_chart(fig)
 
 # annual_returns= data_cleaned['% change'].mean()*12
@@ -292,8 +301,20 @@ for feature in features.columns[indices[:6]]:
     future[feature] = np.append(data_ready[feature].values, [data_ready[feature].values[-1]] * (len(future) - len(data_ready)))
 
 forecast = model.predict(future)
-fig = model.plot(forecast)
-st.pyplot(fig)
+# Use plotly to plot the forecast with interactive features and a legend
+fig = plot_plotly(model, forecast)
+
+# Add a title and labels to the plotly graph
+fig.update_layout(
+    title=f'{stock_symbol} Stock Price Forecast (Prophet Model)',
+    xaxis_title='Date',
+    yaxis_title='Stock Price (Log-Transformed)',
+    legend_title='Legend',
+    showlegend=True  # Ensures the legend is displayed
+)
+
+# Display the plot in Streamlit
+st.plotly_chart(fig)
 
 data_transformed_reset = data_transformed.reset_index()
 
@@ -320,7 +341,7 @@ pdq = list(itertools.product(p, d, q))
 seasonal_pdq = [(x[0], x[1], x[2], 12) for x in pdq]
 exog_vars = data_transformed[['GDP', 'unemployment_log', 'cpi_value', 'Retail_sqrt']]
 aic_values = []
-st.write(exog_vars)
+#st.write(exog_vars)
 
 for param in pdq:
     for param_seasonal in seasonal_pdq:
@@ -450,7 +471,15 @@ with PE_Ratio:
             st.metric(label=f'Average P/E Ratio for {bank}', value=f"{avg_pe_ratio:.2f}")
             fig.add_trace(go.Scatter(x=PE_data.index, y=PE_data['PE ratio'], mode='lines', name=f'{bank} P/E Ratio'))
 
-        fig.layout.update(title_text='P/E Ratio Comparison', xaxis_rangeslider_visible=True)
+        fig.update_layout(
+        title='P/E Ratio Comparison',
+        xaxis_title='Date',
+        yaxis_title='P/E Ratio',
+        legend_title='Banks',
+        xaxis_rangeslider_visible=True
+        )
+    
+        # Display the Plotly figure in Streamlit
         st.plotly_chart(fig)
     else:
         st.write("Please select at least one bank for comparison.")
@@ -504,7 +533,8 @@ with PE_Ratio:
 
     # Ensure 'date' is in the index before merging
     mergedPE_data.dropna(inplace=True)
-   # st.write(mergedPE_data)
+    st.subheader(f'Merged PE data for {stock_symbol}')
+    st.write(mergedPE_data)
 
    # lets select the most relevant features to the target in order of importance
     featureSPE = mergedPE_data.drop(columns=[targetPE.name, 'date'])  # Dynamically drop the correct PE column
@@ -522,7 +552,7 @@ with PE_Ratio:
     st.pyplot(fig)
     
     period2 = n_years * 4
-    st.subheader(f'{stock_symbol} Stock Price Forecast Prophet')
+    st.subheader(f'{stock_symbol} P/E Ratio Forecast Prophet')
     # Reset the index to access the 'date' column
     #mergedPE_data_reset = mergedPE_data.reset_index()
     columns_to_select = [targetPE.name, 'date']
@@ -541,11 +571,23 @@ with PE_Ratio:
         future[feature] = np.append(dataPE_ready[feature].values, [dataPE_ready[feature].values[-1]] * (len(future) - len(dataPE_ready)))
     
     forecast = model.predict(future)
-    fig = model.plot(forecast)
-    st.pyplot(fig)
+    # Using plotly to plot the forecast with interactive features and a legend
+    fig = plot_plotly(model, forecast)
+
+    # Add a title and labels to the plotly graph
+    fig.update_layout(
+        title=f'{stock_symbol} P/E Ratio Forecast (Prophet Model)',
+        xaxis_title='Date',
+        yaxis_title='P/E Ratio ',
+        legend_title='Legend',
+        showlegend=True  # Ensures the legend is displayed
+    )
+
+    # Display the plot in Streamlit
+    st.plotly_chart(fig)
 
     dataPE_reset = mergedPE_data.reset_index()
-    st.write(dataPE_reset)
+    #st.write(dataPE_reset)
     # Calculate RMSE and MAE for Prophet
     y_true = dataPE_reset[targetPE.name]  # Actual values
     y_pred_prophet = forecast['yhat'].iloc[:len(y_true)]   # Predicted values from Prophet
@@ -571,7 +613,7 @@ with PE_Ratio:
     seasonal_pdq = [(x[0], x[1], x[2], 4) for x in pdq]
     exog_varPE =mergedPE_data.drop(columns=[targetPE.name])
     #exog_varPE =mergedPE_data[['GDP','Interest_sqrt', 'unemployment_log', 'cpi_value', 'Retail_sqrt', 'durables', 'treasure_yield', 'payroll_sqrt']]
-    st.write(exog_varPE)
+    #st.write(exog_varPE)
     aic_values = []
 
     for param in pdq:
@@ -705,8 +747,15 @@ with ROE_Data:
             avg_roe = calculate_average(ROE_data, 'ROE')
             st.metric(label=f'Average ROE for {bank}', value=f"{avg_roe:.2f}%")
             fig.add_trace(go.Scatter(x=ROE_data.index, y=ROE_data['ROE'], mode='lines', name=f'{bank} ROE'))
-
-        fig.layout.update(title_text='ROE Comparison', xaxis_rangeslider_visible=True)
+        st.subheader('ROE Comparison Plot')
+        fig.update_layout(
+        title='P/E Ratio Comparison',
+        xaxis_title='Date',
+        yaxis_title='ROE Ratio',
+        legend_title='Banks',
+        xaxis_rangeslider_visible=True
+        )
+        # Display the Plotly figure in Streamlit
         st.plotly_chart(fig)
     else:
         st.write("Please select at least one bank for comparison.")
@@ -740,7 +789,7 @@ with ROE_Data:
 
     # Apply transformations
     ROEdata_transformed = apply_skewness_transformations(ROE_data, stock_symbol)
-    st.subheader(f'transformed PE data for {stock_symbol}')
+    st.subheader(f'transformed ROE data for {stock_symbol}')
     st.write(ROEdata_transformed)
 
 
@@ -751,7 +800,7 @@ with ROE_Data:
 
      # Ensure 'date' is in the index before merging
     mergedROE_data.dropna(inplace=True)
-
+    st.subheader(f'Merged ROE data for {stock_symbol}')
     st.write(mergedROE_data)
 
     featureROE = mergedROE_data.drop(columns=['ROE', 'date'])
@@ -766,14 +815,14 @@ with ROE_Data:
     ax.set_xlabel('Relative Importance')
     st.pyplot(fig)
     
-    st.subheader(f'{stock_symbol} Stock Price Forecast Prophet')
+    st.subheader(f'{stock_symbol} ROE Forecast Prophet')
     # Reset the index to access the 'date' column
     mergedROE_data_reset = mergedROE_data.reset_index()
     columns_to_select = ['ROE', 'date']
     columns_to_select.extend(featureROE.columns[indices[:8]])
     dataROE_ready = mergedROE_data_reset[columns_to_select]
     dataROE_ready.rename(columns={'date': 'ds', 'ROE': 'y'}, inplace=True)
-    st.write( dataROE_ready)
+    #st.write( dataROE_ready)
 
     model = Prophet()
     for feature in featureROE.columns[indices[:8]]:
@@ -785,8 +834,20 @@ with ROE_Data:
         future[feature] = np.append(dataROE_ready[feature].values, [dataROE_ready[feature].values[-1]] * (len(future) - len(dataROE_ready)))
     
     forecast = model.predict(future)
-    fig = model.plot(forecast)
-    st.pyplot(fig)
+     # Using plotly to plot the forecast with interactive features and a legend
+    fig = plot_plotly(model, forecast)
+
+    # Add a title and labels to the plotly graph
+    fig.update_layout(
+        title=f'{stock_symbol} ROE Forecast (Prophet Model)',
+        xaxis_title='Date',
+        yaxis_title='ROE',
+        legend_title='Legend',
+        showlegend=True  # Ensures the legend is displayed
+    )
+
+    # Display the plot in Streamlit
+    st.plotly_chart(fig)
 
     dataROE_reset = mergedROE_data.reset_index()
     # Calculate RMSE and MAE for Prophet
@@ -905,7 +966,7 @@ with ROE_Data:
     pred_ci = pred_uc.conf_int()
 
     # Plot the historical data and forecasted values
-    st.subheader(f'{stock_symbol} Stock Price Forecast ARIMA')
+    st.subheader(f'{stock_symbol} ROE Forecast ARIMA Model')
     fig, ax = plt.subplots()
     ax = mergedROE_data[targetROE.name].plot(label='Historic', figsize=(14, 7))
 

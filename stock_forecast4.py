@@ -749,7 +749,7 @@ with ROE_Data:
             fig.add_trace(go.Scatter(x=ROE_data.index, y=ROE_data['ROE'], mode='lines', name=f'{bank} ROE'))
         st.subheader('ROE Comparison Plot')
         fig.update_layout(
-        title='P/E Ratio Comparison',
+        #title='P/E Ratio Comparison',
         xaxis_title='Date',
         yaxis_title='ROE Ratio',
         legend_title='Banks',

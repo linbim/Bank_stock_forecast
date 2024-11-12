@@ -10,3 +10,4 @@ datetime
 seaborn
 statsmodels
 openpyxl
+pytest
